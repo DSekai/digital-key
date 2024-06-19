@@ -33,7 +33,7 @@ enum State {
 
 model User {
   id       String @id @default(uuid())
-  email    String
+  email    String @unique
   username String
   password String
   Role     Role   @default(CLIENT)
