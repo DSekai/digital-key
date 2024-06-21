@@ -55,7 +55,7 @@ model Wallet {
 
 model Category {
   id       String @id @default(uuid())
-  category String
+  category String @unique
 
   Product Product[]
 }
