@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { CreateAuthDto } from './dto/create-auth.dto'
 import { UpdateAuthDto } from './dto/update-auth.dto'
 import { PrismaService } from '../prisma/prisma.service'
@@ -11,7 +16,10 @@ import { sign } from 'jsonwebtoken'
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createAuthDto: CreateAuthDto) {
-    const password = await hash(createAuthDto.password, parseInt(process.env.SALT_ROUNDS))
+    const password = await hash(
+      createAuthDto.password,
+      parseInt(process.env.SALT_ROUNDS)
+    )
     createAuthDto.password = password
     try {
       const email = await this.findUserByEmail(createAuthDto.email)
@@ -29,11 +37,6 @@ export class AuthService {
     try {
       return this.prisma.user.findUnique({
         where: { email },
-        // select: {
-        //   username: true,
-        //   email: true,
-        //   Role: true,
-        // },
       })
     } catch (error) {
       handleErrorExceptions(error)
@@ -42,16 +45,18 @@ export class AuthService {
 
   async login(loginAuthDto: LoginAuthDto) {
     try {
-      const user = await this.findUserByEmail(loginAuthDto.email)
+      const { password, id, ...user } = await this.findUserByEmail(
+        loginAuthDto.email
+      )
       if (!user) throw new NotFoundException('User not Found')
 
-      const password = await compare(loginAuthDto.password, user.password)
-      if (!password) throw new BadRequestException('Invalid Credentials')
+      const correctPassword = await compare(loginAuthDto.password, password)
+      if (!correctPassword) throw new BadRequestException('Invalid Credentials')
 
       const secret = process.env.SECRET_JWT_KEY
       const token = sign(
         {
-          user,
+          id,
         },
         secret,
         {
@@ -59,11 +64,7 @@ export class AuthService {
         }
       )
       return {
-        user: {
-          username: user.username,
-          email: user.email,
-          role: user.Role,
-        },
+        user: { ...user },
         token,
       }
     } catch (error) {
