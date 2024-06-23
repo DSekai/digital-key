@@ -1,22 +1,13 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Res,
-} from '@nestjs/common'
+import { Controller, Get, Post, Body, Res, Patch } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { CreateAuthDto } from './dto/create-auth.dto'
-import { UpdateAuthDto } from './dto/update-auth.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { LoginAuthDto } from './dto/login-auth.dto'
 import { Response } from 'express'
 // import { Cookies } from './decorator/cookies.decorator'
 import { User } from './interfaces/user.interface'
 import { Auth, GetUser } from './decorator'
+import { UpdateRoleAuthDto } from './dto/role-auth.dto'
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -47,6 +38,16 @@ export class AuthController {
       })
       .send(user)
   }
+
+  @ApiOperation({
+    description: 'This enpoint is for update user Role',
+  })
+  @Patch('update-role')
+  @Auth('ADMIN')
+  async updateRole(@Body() updateRoleAuthDto: UpdateRoleAuthDto) {
+    return await this.authService.updateRole(updateRoleAuthDto)
+  }
+
   @Get()
   // findAll(@Cookies('acces_token') token: User) {
   @Auth()
