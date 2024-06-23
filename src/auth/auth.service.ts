@@ -1,25 +1,17 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { CreateAuthDto } from './dto/create-auth.dto'
-import { UpdateAuthDto } from './dto/update-auth.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { handleErrorExceptions } from '../common/handleErrorsExcepcions'
 import { compare, hash } from 'bcrypt'
 import { LoginAuthDto } from './dto/login-auth.dto'
 import { sign } from 'jsonwebtoken'
+import { UpdateRoleAuthDto } from './dto/role-auth.dto'
 
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createAuthDto: CreateAuthDto) {
-    const password = await hash(
-      createAuthDto.password,
-      parseInt(process.env.SALT_ROUNDS)
-    )
+    const password = await hash(createAuthDto.password, parseInt(process.env.SALT_ROUNDS))
     createAuthDto.password = password
     try {
       const email = await this.findUserByEmail(createAuthDto.email)
@@ -27,6 +19,7 @@ export class AuthService {
 
       return this.prisma.user.create({
         data: createAuthDto,
+        select: { email: true },
       })
     } catch (error) {
       handleErrorExceptions(error)
@@ -35,9 +28,10 @@ export class AuthService {
 
   async findUserByEmail(email: string) {
     try {
-      return this.prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { email },
       })
+      return user
     } catch (error) {
       handleErrorExceptions(error)
     }
@@ -45,9 +39,7 @@ export class AuthService {
 
   async login(loginAuthDto: LoginAuthDto) {
     try {
-      const { password, id, ...user } = await this.findUserByEmail(
-        loginAuthDto.email
-      )
+      const { password, id, ...user } = await this.findUserByEmail(loginAuthDto.email)
       if (!user) throw new NotFoundException('User not Found')
 
       const correctPassword = await compare(loginAuthDto.password, password)
@@ -72,16 +64,33 @@ export class AuthService {
     }
   }
 
+  async updateRole(updateRoleAuthDto: UpdateRoleAuthDto) {
+    try {
+      const user = await this.findUserByEmail(updateRoleAuthDto.email)
+      if (!user) throw new NotFoundException('User not Exist')
+
+      return await this.prisma.user.update({
+        where: {
+          email: updateRoleAuthDto.email,
+        },
+        data: {
+          Role: updateRoleAuthDto.Role,
+        },
+        select: {
+          Role: true,
+        },
+      })
+    } catch (error) {
+      handleErrorExceptions(error)
+    }
+  }
+
   findAll() {
     return `This action returns all auth`
   }
 
   findOne(id: number) {
     return `This action returns a #${id} auth`
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`
   }
 
   remove(id: number) {
