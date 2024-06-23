@@ -1,36 +1,56 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { CreateCategoryDto } from './dto/create-category.dto'
-import { UpdateCategoryDto } from './dto/update-category.dto'
+// import { UpdateCategoryDto } from './dto/update-category.dto'
 import { handleErrorExceptions } from 'src/common/handleErrorsExcepcions'
 import { PrismaService } from 'src/prisma/prisma.service'
+import { UpdateCategoryDto } from './dto/update-category.dto'
 
 @Injectable()
 export class CategoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createCategoryDto: CreateCategoryDto) {
-    try {
-      return this.prisma.category.create({
+  async create(createCategoryDto: CreateCategoryDto) {
+    await this.prisma.category
+      .create({
         data: createCategoryDto,
       })
-    } catch (error) {
-      handleErrorExceptions(error)
-    }
+      .catch((e) => {
+        handleErrorExceptions(e)
+      })
   }
 
-  findAll() {
-    return `This action returns all category`
+  async findAll() {
+    return await this.prisma.category.findMany().catch((e) => handleErrorExceptions(e))
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`
+  async findByID(id: string) {
+    const category = await this.prisma.category
+      .findUnique({
+        where: { id },
+      })
+      .catch((error) => handleErrorExceptions(error))
+    return category
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`
+  async remove(id: string) {
+    const exist = await this.findByID(id)
+    if (!exist) throw new NotFoundException('Category not exist')
+    await this.prisma.category.delete({
+      where: { id },
+    })
+
+    return { message: 'Category succesfully deleted' }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`
+  async update(updateCategoryDto: UpdateCategoryDto) {
+    const exist = await this.findByID(updateCategoryDto.id)
+    if (!exist) throw new NotFoundException('Category not exist')
+
+    return this.prisma.category
+      .update({
+        where: { id: updateCategoryDto.id },
+        data: updateCategoryDto,
+      })
+      .catch((e) => handleErrorExceptions(e))
   }
 }
