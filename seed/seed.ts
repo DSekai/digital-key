@@ -1,15 +1,16 @@
-import { $Enums, PrismaClient, User } from '@prisma/client'
+import { $Enums, Category, PrismaClient, User } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import { hash } from 'bcrypt'
 
 const prisma = new PrismaClient()
+const salt = parseInt(process.env.SALT_ROUNDS)
 
-async function main() {
+async function users() {
   await prisma.user.deleteMany({})
 
   const amountOfUser = 50
   const rolesArray = Object.values($Enums.Role)
-  const salt = parseInt(process.env.SALT_ROUNDS)
+  // const salt = parseInt(process.env.SALT_ROUNDS)
   const hashedPassword = await hash('testPsw@123', salt)
 
   const users: User[] = []
@@ -34,6 +35,34 @@ async function main() {
   const addusers = async () => await prisma.user.createMany({ data: users })
 
   addusers()
+}
+
+async function category() {
+  await prisma.category.deleteMany({})
+  const amountOfCategory = 10
+
+  const categories: Category[] = []
+
+  for (let i = 0; i < amountOfCategory; i++) {
+    const id = faker.string.uuid()
+    const category = faker.lorem.word()
+
+    const Category: Category = {
+      id,
+      category,
+    }
+
+    categories.push(Category)
+  }
+
+  const addCategories = async () => await prisma.category.createMany({ data: categories })
+
+  addCategories()
+}
+
+async function main() {
+  await users()
+  await category()
 }
 
 main()
