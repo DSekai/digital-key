@@ -1,16 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  // Patch,
-  Param,
-  Delete,
-  Patch,
-} from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common'
 import { CategoryService } from './category.service'
 import { CreateCategoryDto } from './dto/create-category.dto'
-// import { UpdateCategoryDto } from './dto/update-category.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { Auth } from 'src/auth/decorator'
 import { UpdateCategoryDto } from './dto/update-category.dto'
