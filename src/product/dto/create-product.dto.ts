@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsOptional, IsString, IsUUID } from 'class-validator'
-import { UUID } from 'crypto'
+import { IsNumber, IsString, IsUUID } from 'class-validator'
 
 export class CreateProductDto {
   @ApiProperty({
@@ -17,23 +16,23 @@ export class CreateProductDto {
     description: 'The description of the Product',
     minLength: 1,
   })
-  @IsOptional()
   @IsString()
-  description?: string
+  description: string
 
   @ApiProperty({
     example: 'c169f3fc-6870-4442-b7ce-66cdad11e8d2',
-    description: 'The UUID of the Product',
+    description: 'The UUID of the Category',
     nullable: false,
     minLength: 1,
   })
   @IsUUID()
-  categoryID: UUID
+  categoryID: string
 
   @ApiProperty({
     example: 19.99,
     description: 'The price of the product',
     nullable: false,
   })
+  @IsNumber()
   price: number
 }
