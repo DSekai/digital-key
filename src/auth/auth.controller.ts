@@ -1,13 +1,13 @@
-import { Controller, Get, Post, Body, Res, Patch } from '@nestjs/common'
+import { Controller, Post, Body, Res, Patch } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { CreateAuthDto } from './dto/create-auth.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { LoginAuthDto } from './dto/login-auth.dto'
 import { Response } from 'express'
-// import { Cookies } from './decorator/cookies.decorator'
-import { User } from './interfaces/user.interface'
 import { Auth, GetUser } from './decorator'
 import { UpdateRoleAuthDto } from './dto/role-auth.dto'
+import { UpdateAuthDto } from './dto/update-auth.dto'
+import { User } from './interfaces'
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -48,13 +48,22 @@ export class AuthController {
     return await this.authService.updateRole(updateRoleAuthDto)
   }
 
-  @Get()
-  // findAll(@Cookies('acces_token') token: User) {
+  @ApiOperation({
+    description: 'This enpoint is for update user',
+  })
+  @Patch()
   @Auth()
-  findAll(@GetUser() user: User) {
-    // console.log(token)
-    return { user, a: 'awebo' }
-
-    // return this.authService.findAll()
+  async update(@Body() updateAuthDto: UpdateAuthDto, @GetUser() user: User) {
+    return await this.authService.update(updateAuthDto, user)
   }
+
+  // @Get()
+  // // findAll(@Cookies('acces_token') token: User) {
+  // @Auth()
+  // findAll(@GetUser() user: User) {
+  //   // console.log(token)
+  //   return { user, a: 'awebo' }
+
+  //   // return this.authService.findAll()
+  // }
 }

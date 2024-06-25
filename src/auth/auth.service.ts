@@ -1,18 +1,23 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { CreateAuthDto } from './dto/create-auth.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { handleErrorExceptions } from '../common/handleErrorsExcepcions'
-import { compare, hash } from 'bcrypt'
+// import { compare } from 'bcrypt'
 import { LoginAuthDto } from './dto/login-auth.dto'
 import { sign } from 'jsonwebtoken'
 import { UpdateRoleAuthDto } from './dto/role-auth.dto'
+import { UpdateAuthDto } from './dto/update-auth.dto'
+import { User } from './interfaces'
+import { comparePasswordHashing, hashingPassword } from 'src/common/hashing-password'
 
 @Injectable()
 export class AuthService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createAuthDto: CreateAuthDto) {
-    const password = await hash(createAuthDto.password, parseInt(process.env.SALT_ROUNDS))
-    createAuthDto.password = password
+    // const password = await hash(createAuthDto.password, parseInt(process.env.SALT_ROUNDS))
+    // createAuthDto.password = password
+
+    createAuthDto.password = await hashingPassword(createAuthDto.password)
     try {
       const email = await this.findUserByEmail(createAuthDto.email)
       if (email) throw new ConflictException('Email already used')
@@ -31,6 +36,8 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({
         where: { email },
       })
+      if (!user) throw new NotFoundException('User not Found')
+
       return user
     } catch (error) {
       handleErrorExceptions(error)
@@ -40,10 +47,8 @@ export class AuthService {
   async login(loginAuthDto: LoginAuthDto) {
     try {
       const { password, id, ...user } = await this.findUserByEmail(loginAuthDto.email)
-      if (!user) throw new NotFoundException('User not Found')
 
-      const correctPassword = await compare(loginAuthDto.password, password)
-      if (!correctPassword) throw new BadRequestException('Invalid Credentials')
+      await comparePasswordHashing(loginAuthDto.password, password)
 
       const secret = process.env.SECRET_JWT_KEY
       const token = sign(
@@ -95,5 +100,19 @@ export class AuthService {
 
   remove(id: number) {
     return `This action removes a #${id} auth`
+  }
+
+  async update(updateAuthDto: UpdateAuthDto, user: User) {
+    updateAuthDto.password = await hashingPassword(updateAuthDto.password)
+    return await this.prisma.user
+      .update({
+        where: {
+          id: user.id,
+        },
+        data: updateAuthDto,
+      })
+      .catch((e) => {
+        handleErrorExceptions(e)
+      })
   }
 }

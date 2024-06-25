@@ -10,15 +10,10 @@ import { Request } from 'express'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    private readonly prismaService: PrismaService,
-    configService: ConfigService
-  ) {
+  constructor(private readonly prismaService: PrismaService, configService: ConfigService) {
     super({
       secretOrKey: configService.get('SECRET_JWT_KEY'),
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        JwtStrategy.extractJWTFromCookies,
-      ]),
+      jwtFromRequest: ExtractJwt.fromExtractors([JwtStrategy.extractJWTFromCookies]),
     })
   }
 
@@ -35,8 +30,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) throw new UnauthorizedException('Token not valid')
     // if (!user.is_active) throw new UnauthorizedException('User is inactive')
     // if (!user.is_verified) throw new UnauthorizedException('Unveried user')
-
-    const { password, id: idUser, ...rest } = user
+    delete user.password
+    const { id: idUser, ...rest } = user
 
     return { ...rest, id: idUser }
   }
