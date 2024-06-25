@@ -1,26 +1,59 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { ConflictException, Injectable } from '@nestjs/common'
+import { CreateProductDto } from './dto/create-product.dto'
+import { handleErrorExceptions } from '../common/handleErrorsExcepcions'
+import { PrismaService } from '../prisma/prisma.service'
+import { UpdateProductDto } from './dto/update-product.dto'
 
 @Injectable()
 export class ProductService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(createProductDto: CreateProductDto) {
+    try {
+      const exist = await this.findOne(createProductDto.name)
+      if (exist) throw new ConflictException('Product name already exist')
+
+      return await this.prisma.product.create({
+        data: {
+          description: createProductDto.description,
+          name: createProductDto.name,
+          price: createProductDto.price,
+          categoryID: createProductDto.categoryID,
+        },
+      })
+    } catch (error) {
+      handleErrorExceptions(error)
+    }
   }
 
   findAll() {
-    return `This action returns all product`;
+    return `This action returns all product`
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(name: string) {
+    return await this.prisma.product
+      .findFirst({
+        where: {
+          name,
+        },
+      })
+      .catch((e) => {
+        handleErrorExceptions(e)
+      })
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  update(updateProductDto: UpdateProductDto) {
+    return this.prisma.product
+      .update({
+        where: {
+          id: updateProductDto.id,
+        },
+        data: updateProductDto,
+      })
+      .catch((e) => handleErrorExceptions(e))
   }
 
   remove(id: number) {
-    return `This action removes a #${id} product`;
+    return `This action removes a #${id} product`
   }
 }
