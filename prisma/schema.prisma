@@ -64,7 +64,7 @@ model Product {
   id          String @id @default(uuid())
   name        String
   description String
-  categoryID  String
+  categoryID  String //todo obtener un listado de categoria mediante tags
   price       Float
 
   Keys          Keys[]
