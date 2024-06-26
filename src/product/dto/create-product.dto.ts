@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsNumber, IsString, IsUUID } from 'class-validator'
+import { ArrayMinSize, IsArray, IsNumber, IsString, IsUUID } from 'class-validator'
 
 export class CreateProductDto {
   @ApiProperty({
@@ -20,13 +20,15 @@ export class CreateProductDto {
   description: string
 
   @ApiProperty({
-    example: 'c169f3fc-6870-4442-b7ce-66cdad11e8d2',
+    example: '[c169f3fc-6870-4442-b7ce-66cdad11e8d2,c169f3fc-6870-4442-b7ce-66cdad11e8d2]',
     description: 'The UUID of the Category',
     nullable: false,
     minLength: 1,
   })
-  @IsUUID()
-  categoryID: string
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsUUID('all', { each: true })
+  categories: string[]
 
   @ApiProperty({
     example: 19.99,
