@@ -57,21 +57,29 @@ model Category {
   id       String @id @default(uuid())
   category String @unique
 
-  Product Product[]
+  ProductCategory ProductCategory[]
 }
 
 model Product {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String
-  categoryID  String //todo obtener un listado de categoria mediante tags
   price       Float
+  isActive    Boolean @default(true)
 
-  Keys          Keys[]
-  ProductReview ProductReview[]
-  Offers        Offers[]
-  SaleDetails   SaleDetails[]
+  Keys            Keys[]
+  ProductReview   ProductReview[]
+  Offers          Offers[]
+  SaleDetails     SaleDetails[]
+  ProductCategory ProductCategory[]
+}
 
+model ProductCategory {
+  id         String @id @default(uuid())
+  categoryID String
+  productID  String
+
+  Product  Product  @relation(fields: [productID], references: [id])
   Category Category @relation(fields: [categoryID], references: [id])
 }
 
