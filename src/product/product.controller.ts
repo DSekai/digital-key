@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Patch, ParseUUIDPipe } from '@nestjs/common'
 import { ProductService } from './product.service'
 import { CreateProductDto } from './dto/create-product.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
@@ -11,7 +11,7 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @ApiOperation({
-    description: 'This endpoint is for create new users',
+    description: 'This endpoint is for create new Product',
   })
   @Post()
   @Auth('ADMIN', 'CLIENT')
@@ -19,14 +19,20 @@ export class ProductController {
     return this.productService.create(createProductDto)
   }
 
+  @ApiOperation({
+    description: 'This endpoint is for search all Product',
+  })
   @Get()
   findAll() {
     return this.productService.findAll()
   }
 
+  @ApiOperation({
+    description: 'This endpoint is for search Product',
+  })
   @Get(':product')
   findOne(@Param('product') product: string) {
-    return this.productService.findOne(product)
+    return this.productService.findProductContain(product)
   }
 
   @ApiOperation({
@@ -38,8 +44,12 @@ export class ProductController {
     return this.productService.update(updateProductDto)
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(+id)
+  @ApiOperation({
+    description: 'This enpoint is for update availability product',
+  })
+  @Patch(':id/active')
+  @Auth('ADMIN', 'EMPLOYEE')
+  async updateActive(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productService.updateActive(id)
   }
 }
