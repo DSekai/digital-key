@@ -1,9 +1,16 @@
-import { $Enums, Category, PrismaClient, User } from '@prisma/client'
+import { $Enums, Category, PrismaClient, Product, ProductCategory, User } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import { hash } from 'bcrypt'
 
+function getRandomElement(data: object[]) {
+  const rnd = Math.random() * data.length
+  const index = Math.floor(rnd)
+  return data[index]
+}
+
 const prisma = new PrismaClient()
 const salt = parseInt(process.env.SALT_ROUNDS)
+const amount = 10
 
 async function users() {
   await prisma.user.deleteMany({})
@@ -38,7 +45,9 @@ async function users() {
 }
 
 async function category() {
+  await prisma.productCategory.deleteMany({})
   await prisma.category.deleteMany({})
+
   const amountOfCategory = 10
 
   const categories: Category[] = []
@@ -59,10 +68,62 @@ async function category() {
 
   addCategories()
 }
+async function product() {
+  await prisma.product.deleteMany({})
 
+  const data: Product[] = []
+
+  for (let i = 0; i < amount; i++) {
+    const id = faker.string.uuid()
+    const name = faker.commerce.productName()
+    const description = faker.commerce.productDescription()
+    const price = parseInt(faker.commerce.price())
+    const isActive = true
+
+    const product: Product = {
+      id,
+      name,
+      description,
+      price,
+      isActive,
+    }
+
+    data.push(product)
+  }
+
+  const addProducts = async () => await prisma.product.createMany({ data })
+
+  addProducts()
+}
+
+async function productCategory() {
+  const categories = await prisma.category.findMany({ select: { id: true } })
+  const products = await prisma.product.findMany({ select: { id: true } })
+  console.log(categories)
+
+  const data: ProductCategory[] = [] //todo intentar hacer el seed
+
+  for (let i = 0; i < amount; i++) {
+    const categoryID = getRandomElement(categories)
+    const productID = getRandomElement(products)
+    console.log(categoryID, productID)
+
+    // const ProductCategory: ProductCategory = {
+    //   categoryID
+    // }
+
+    // data.push(ProductCategory)
+  }
+
+  // const addproductCategory = async () => await prisma.productCategory.createMany({ data })
+
+  // addproductCategory()
+}
 async function main() {
   await users()
   await category()
+  await product()
+  await productCategory()
 }
 
 main()
