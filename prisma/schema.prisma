@@ -97,7 +97,8 @@ model Keys {
   id        String  @id @default(uuid())
   key       String
   productID String
-  enable    Boolean
+  enable    Boolean @default(true)
+  isUsed    Boolean @default(false)
 
   UserProduct UserProduct[]
 
