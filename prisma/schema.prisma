@@ -95,7 +95,7 @@ model Offers {
 
 model Keys {
   id        String  @id @default(uuid())
-  key       String
+  key       String  @unique
   productID String
   enable    Boolean @default(true)
   isUsed    Boolean @default(false)
