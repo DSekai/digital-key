@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import { CreateAuthDto } from './dto/create-auth.dto'
 import { PrismaService } from '../prisma/prisma.service'
 import { handleErrorExceptions } from '../common/handleErrorsExcepcions'
@@ -36,7 +36,6 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({
         where: { email },
       })
-      if (!user) throw new NotFoundException('User not Found')
 
       return user
     } catch (error) {
@@ -46,9 +45,14 @@ export class AuthService {
 
   async login(loginAuthDto: LoginAuthDto) {
     try {
-      const { password, id, ...user } = await this.findUserByEmail(loginAuthDto.email)
+      const data = await this.findUserByEmail(loginAuthDto.email)
+      if (!data) throw new NotFoundException('User not Found')
 
-      await comparePasswordHashing(loginAuthDto.password, password)
+      const { password, id, ...user } = data
+
+      const correctPassword = await comparePasswordHashing(loginAuthDto.password, password)
+
+      if (!correctPassword) throw new BadRequestException('Invalid Credentials')
 
       const secret = process.env.SECRET_JWT_KEY
       const token = sign(

@@ -27,16 +27,22 @@ export class AuthController {
   })
   @Post('login')
   async login(@Res() res: Response, @Body() loginAuthDto: LoginAuthDto) {
-    const { user, token } = await this.authService.login(loginAuthDto)
-
-    return res
-      .cookie('acces_token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 1000 * 60 * 60,
+    await this.authService
+      .login(loginAuthDto)
+      .then((data) => {
+        const { user, token } = data
+        return res
+          .cookie('acces_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 1000 * 60 * 60,
+          })
+          .send(user)
       })
-      .send(user)
+      .catch((e) => {
+        throw e
+      })
   }
 
   @ApiOperation({

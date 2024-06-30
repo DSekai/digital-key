@@ -1,4 +1,4 @@
-import { ConflictException, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, ConflictException, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import { JsonWebTokenError } from 'jsonwebtoken'
 
@@ -8,6 +8,7 @@ export const handleErrorExceptions = (error: unknown) => {
   if (error instanceof ConflictException) throw new ConflictException(error.message)
   if (error instanceof JsonWebTokenError) throw new UnauthorizedException(error.message)
   if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') throw new ConflictException('Data already exist')
+  if (error instanceof BadRequestException) throw new BadRequestException(error.message)
 
   throw new InternalServerErrorException('An unexpected error occurred')
 }
