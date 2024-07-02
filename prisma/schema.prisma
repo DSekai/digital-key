@@ -106,10 +106,9 @@ model Keys {
 }
 
 model UserProduct {
-  id     String  @id @default(uuid())
+  id     String @id @default(uuid())
   userID String
   keyID  String
-  isUsed Boolean @default(false)
 
   User User @relation(fields: [userID], references: [id])
   Keys Keys @relation(fields: [keyID], references: [id])
