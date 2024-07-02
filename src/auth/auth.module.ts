@@ -25,5 +25,6 @@ import { JwtStrategy } from './strategies/jwt.strategy'
     }),
     PrismaModule,
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}
