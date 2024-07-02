@@ -1,4 +1,4 @@
-import { $Enums, Category, PrismaClient, Product, ProductCategory, User } from '@prisma/client'
+import { $Enums, Category, Keys, PrismaClient, Product, ProductCategory, User } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import { hash } from 'bcrypt'
 
@@ -12,9 +12,15 @@ function getRandomElement(data: string[]) {
   return data[index]
 }
 
-async function users() {
+async function deleteData() {
   await prisma.user.deleteMany({})
+  await prisma.productCategory.deleteMany({})
+  await prisma.category.deleteMany({})
+  await prisma.keys.deleteMany({})
+  await prisma.product.deleteMany({})
+}
 
+async function users() {
   const amountOfUser = 50
   const rolesArray = Object.values($Enums.Role)
   // const salt = parseInt(process.env.SALT_ROUNDS)
@@ -45,9 +51,6 @@ async function users() {
 }
 
 async function category() {
-  await prisma.productCategory.deleteMany({})
-  await prisma.category.deleteMany({})
-
   const data: Category[] = []
 
   for (let i = 0; i < amount; i++) {
@@ -68,8 +71,6 @@ async function category() {
 }
 
 async function product() {
-  await prisma.product.deleteMany({})
-
   const data: Product[] = []
 
   for (let i = 0; i < amount; i++) {
@@ -121,11 +122,40 @@ async function productCategory() {
 
   await addproductCategory()
 }
+
+async function key() {
+  const products = await prisma.product.findMany({ select: { id: true } })
+
+  const pro = products.map((product) => product.id)
+
+  const data: Keys[] = []
+
+  for (let i = 0; i < amount; i++) {
+    const id = faker.string.uuid()
+    const keyUUID = faker.string.uuid()
+    const productID = getRandomElement(pro)
+
+    const key: Keys = {
+      id,
+      key: keyUUID,
+      enable: true,
+      isUsed: false,
+      productID,
+    }
+    data.push(key)
+  }
+
+  const addKey = async () => await prisma.keys.createMany({ data })
+
+  await addKey()
+}
 async function main() {
+  await deleteData()
   await users()
   await category()
   await product()
   await productCategory()
+  await key()
 }
 
 main()
