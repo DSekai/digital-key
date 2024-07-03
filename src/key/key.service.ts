@@ -92,7 +92,6 @@ export class KeyService {
   }
 
   async isUsed(keyID: string, user: User) {
-    //todo terminar el endpoint
     const userData: FindKeyUserDto = {
       email: user.email,
       keyID,
@@ -101,7 +100,8 @@ export class KeyService {
     await this.isOwner(userData)
 
     const { isUsed } = await this.findOne(keyID)
-    return this.prisma.keys
+    if (isUsed === true) throw new BadRequestException('key already used')
+    const { key } = await this.prisma.keys
       .update({
         where: {
           id: keyID,
@@ -111,6 +111,7 @@ export class KeyService {
         },
       })
       .catch((e) => handleErrorExceptions(e))
+    return { key }
   }
 
   async findKeyAvalible() {
@@ -167,7 +168,50 @@ export class KeyService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} key`
+  async refaund(findKeyUserDto: FindKeyUserDto) {
+    try {
+      const refund = await this.prisma.$transaction(async (prisma) => {
+        const { id: productOwnerID } = await this.isOwner(findKeyUserDto)
+
+        const { isUsed } = await this.findOne(findKeyUserDto.keyID)
+
+        if (isUsed) throw new BadRequestException('The key is already used')
+
+        const { id: userID } = await this.auth.findUserByEmail(findKeyUserDto.email)
+
+        await this.removeKeyUser(productOwnerID, userID)
+
+        await prisma.keys.update({
+          where: {
+            id: findKeyUserDto.keyID,
+          },
+          data: {
+            enable: true,
+          },
+        })
+
+        return {
+          message: 'Product is refunded',
+        }
+      })
+
+      return refund
+    } catch (error) {
+      handleErrorExceptions(error)
+    }
+  }
+
+  async removeKeyUser(productOwnerID: string, userID: string) {
+    return this.prisma.userProduct
+      .delete({
+        where: {
+          id: productOwnerID,
+          userID,
+        },
+      })
+      .catch((e) => {
+        handleErrorExceptions(e)
+        throw e
+      })
   }
 }

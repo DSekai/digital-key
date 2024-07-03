@@ -65,8 +65,12 @@ export class KeyController {
     return this.keyService.isUsed(id, user)
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.keyService.remove(+id)
+  @ApiOperation({
+    description: 'This endpoint is for refund product',
+  })
+  @Delete()
+  @Auth('ADMIN', 'EMPLOYEE')
+  remove(@Query() findKeyUserDto: FindKeyUserDto) {
+    return this.keyService.refaund(findKeyUserDto)
   }
 }
