@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, ParseUUIDPipe } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Patch, ParseUUIDPipe, Delete } from '@nestjs/common'
 import { ProductService } from './product.service'
 import { CreateProductDto } from './dto/create-product.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
@@ -51,5 +51,14 @@ export class ProductController {
   @Auth('ADMIN', 'EMPLOYEE')
   async updateActive(@Param('id', ParseUUIDPipe) id: string) {
     return this.productService.updateActive(id)
+  }
+
+  @ApiOperation({
+    description: 'This enpoint is for remove category of product',
+  })
+  @Delete(':id')
+  @Auth('ADMIN', 'EMPLOYEE')
+  async removeProductCategory(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productService.removeProductCategory(id)
   }
 }

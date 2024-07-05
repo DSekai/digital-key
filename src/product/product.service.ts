@@ -42,6 +42,16 @@ export class ProductService {
     return true
   }
 
+  async removeProductCategory(productcCategoryID: string) {
+    return this.prisma.productCategory
+      .delete({
+        where: {
+          id: productcCategoryID,
+        },
+      })
+      .catch((e) => handleErrorExceptions(e))
+  }
+
   async findAll() {
     return await this.prisma.product.findMany({}).catch((e) => handleErrorExceptions(e))
   }
