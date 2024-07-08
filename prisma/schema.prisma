@@ -161,5 +161,6 @@ model Company {
   id      String @id @default(uuid())
   name    String
   address String
-  Phone   String
+  phone   String
+  logo    String
 }
