@@ -14,6 +14,7 @@ function getRandomElement(data: string[]) {
 
 async function deleteData() {
   await prisma.user.deleteMany({})
+  await prisma.userProduct.deleteMany({})
   await prisma.productCategory.deleteMany({})
   await prisma.category.deleteMany({})
   await prisma.keys.deleteMany({})

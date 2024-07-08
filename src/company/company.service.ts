@@ -1,26 +1,44 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCompanyDto } from './dto/create-company.dto';
-import { UpdateCompanyDto } from './dto/update-company.dto';
+import { Injectable } from '@nestjs/common'
+import { CreateCompanyDto } from './dto/create-company.dto'
+import { UpdateCompanyDto } from './dto/update-company.dto'
+import { PrismaService } from 'src/prisma/prisma.service'
+import { handleErrorExceptions } from 'src/common/handleErrorsExcepcions'
 
 @Injectable()
 export class CompanyService {
-  create(createCompanyDto: CreateCompanyDto) {
-    return 'This action adds a new company';
+  constructor(private readonly prisma: PrismaService) {}
+  async create(createCompanyDto: CreateCompanyDto) {
+    return await this.prisma.company
+      .create({
+        data: createCompanyDto,
+      })
+      .catch((e) => handleErrorExceptions(e))
   }
 
-  findAll() {
-    return `This action returns all company`;
+  async findCompany() {
+    return await this.prisma.company.findFirst({}).catch((e) => handleErrorExceptions(e))
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} company`;
+  async update(updateCompanyDto: UpdateCompanyDto) {
+    const { id } = await this.findCompany()
+    const company = await this.prisma.company.update({
+      where: { id },
+      data: updateCompanyDto,
+    })
+    company.isActive = undefined
+    return company
   }
 
-  update(id: number, updateCompanyDto: UpdateCompanyDto) {
-    return `This action updates a #${id} company`;
-  }
+  async isActive() {
+    const { id, isActive } = await this.findCompany()
 
-  remove(id: number) {
-    return `This action removes a #${id} company`;
+    return await this.prisma.company.update({
+      where: {
+        id,
+      },
+      data: {
+        isActive: !isActive,
+      },
+    })
   }
 }

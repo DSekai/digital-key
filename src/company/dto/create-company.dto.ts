@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsUrl, MinLength } from 'class-validator'
+import { IsOptional, IsString, IsUrl, MinLength } from 'class-validator'
 
 export class CreateCompanyDto {
   @ApiProperty({
@@ -37,6 +37,7 @@ export class CreateCompanyDto {
     minLength: 4,
   })
   @IsString()
+  @IsOptional()
   @IsUrl()
-  logo: string
+  logo?: string
 }
