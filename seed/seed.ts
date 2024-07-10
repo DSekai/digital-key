@@ -1,4 +1,4 @@
-import { $Enums, Category, Keys, PrismaClient, Product, ProductCategory, User } from '@prisma/client'
+import { $Enums, Category, Company, Keys, PrismaClient, Product, ProductCategory, User } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import { hash } from 'bcrypt'
 
@@ -13,12 +13,13 @@ function getRandomElement(data: string[]) {
 }
 
 async function deleteData() {
-  await prisma.user.deleteMany({})
   await prisma.userProduct.deleteMany({})
   await prisma.productCategory.deleteMany({})
   await prisma.category.deleteMany({})
   await prisma.keys.deleteMany({})
   await prisma.product.deleteMany({})
+  await prisma.company.deleteMany({})
+  await prisma.user.deleteMany({})
 }
 
 async function users() {
@@ -150,6 +151,21 @@ async function key() {
 
   await addKey()
 }
+
+async function company() {
+  const data: Company = {
+    id: faker.string.uuid(),
+    name: faker.company.name(),
+    address: faker.location.streetAddress(),
+    phone: faker.phone.number(),
+    isActive: true,
+    logo: '',
+  }
+
+  const addCompany = async () => await prisma.company.create({ data })
+
+  await addCompany()
+}
 async function main() {
   await deleteData()
   await users()
@@ -157,6 +173,7 @@ async function main() {
   await product()
   await productCategory()
   await key()
+  await company()
 }
 
 main()
