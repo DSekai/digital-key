@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { MercadoPagoConfig, Payment, Preference } from 'mercadopago'
+import { MercadoPagoConfig, Preference } from 'mercadopago'
+import { PreferenceRequest } from 'mercadopago/dist/clients/preference/commonTypes'
 
 @Injectable()
 export class PaymentService {
@@ -11,26 +12,48 @@ export class PaymentService {
       },
     })
 
-    const preference = {
-      item: [
+    const body: PreferenceRequest = {
+      items: [
         {
-          title: 'algo',
-          unit_price: 100,
+          id: '123',
+          title: 'test product',
           quantity: 1,
+          unit_price: 1,
+          currency_id: 'CLP',
+        },
+        {
+          id: '1234',
+          title: 'test product 2',
+          quantity: 1,
+          unit_price: 1,
+          currency_id: 'CLP',
         },
       ],
-    }
-
-    const payment = new Payment(client)
-
-    const body = {
-      transaction_amount: 12.34,
-      description: '<DESCRIPTION>',
-      payment_method_id: '<PAYMENT_METHOD_ID>',
-      payer: {
-        email: '<EMAIL>',
+      back_urls: {
+        success: 'https://www.sekaidev.com',
+        failure: 'https://www.sekaidev.com',
+        pending: 'https://www.sekaidev.com',
       },
+      auto_return: 'approved',
+      additional_info: 'title',
     }
-    payment.create({ body }).then(console.log).catch(console.log)
+
+    try {
+      const preference = await new Preference(client).create({ body })
+      return { redirectUrl: preference.init_point }
+    } catch (error) {
+      return error
+    }
+    // const payment = new Payment(client)
+
+    // const body = {
+    //   transaction_amount: 12.34,
+    //   description: '<DESCRIPTION>',
+    //   payment_method_id: '<PAYMENT_METHOD_ID>',
+    //   payer: {
+    //     email: '<EMAIL>',
+    //   },
+    // }
+    // payment.create({ body }).then(console.log).catch(console.log)
   }
 }

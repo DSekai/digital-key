@@ -5,8 +5,9 @@ import { PaymentService } from './payment.service'
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
-  @Post()
+  @Post('mercadopago')
   mercadoPago() {
-    return this.paymentService.mercadoPago()
+    // return this.paymentService.mercadoPago()
+    return { message: 'not avalible' }
   }
 }
